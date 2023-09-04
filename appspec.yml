@@ -1,0 +1,24 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /home/ubuntu/quick-translates-api-worker/
+    overwrite: true
+file_exists_behavior: OVERWRITE
+hooks:
+  ApplicationStop:
+    - location: scripts/application-stop
+      timeout: 300
+      runas: root
+  BeforeInstall:
+    - location: scripts/before-install
+      timeout: 300
+      runas: ubuntu
+  AfterInstall:
+    - location: scripts/after-install
+      timeout: 600
+      runas: ubuntu
+  ApplicationStart:
+    - location: scripts/application-start
+      timeout: 300
+      runas: root

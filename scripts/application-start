@@ -1,0 +1,29 @@
+#!/bin/bash
+
+#set -e
+
+# keep track of the last executed command
+trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
+# echo an error message before exiting
+trap 'echo "\"${last_command}\" command filed with exit code $?."' EXIT
+
+# direct all logs to application-start.log
+exec 3>&1 4>&2
+trap 'exec 2>&4 1>&3' 0 1 2 3
+exec 1>/home/ubuntu/quick-translates-api-worker/scripts/logging/application-start.log 2>&1
+
+SOURCE="/home/ubuntu/large-v2.pt"
+DESTINATION="/home/ubuntu/quick-translates-api-worker/data/models/"
+
+# Check if the source file exists
+if [ -e "$SOURCE" ]; then
+    # File exists, so perform the move
+    mv -f "$SOURCE" "$DESTINATION"
+    echo "File moved successfully."
+else
+    # File does not exist
+    echo "The file $SOURCE is already under the $DESTINATION directory."
+fi
+
+systemctl restart quick-translates.service
+systemctl restart nginx.service
