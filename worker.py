@@ -716,9 +716,7 @@ def process_job():
                 )
                 return
 
-            output_folder = os.path.join(
-                os.environ.get("DATA_DIR"), "outputs", job_id
-            )
+            output_folder = os.path.join(os.environ.get("DATA_DIR"), "outputs", job_id)
 
             rtl_language = [
                 "Arabic",
