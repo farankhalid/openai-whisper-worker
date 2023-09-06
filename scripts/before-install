@@ -15,4 +15,4 @@ exec 1>/home/ubuntu/quick-translates-api-worker/scripts/logging/before-install.l
 QT_DIR="/home/ubuntu/quick-translates-api-worker"
 
 # changing ownership of directory
-sudo chown -R ubuntu:www-data ${QT_DIR}
+sudo chown -R ubuntu:ubuntu ${QT_DIR}

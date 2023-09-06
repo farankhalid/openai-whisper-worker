@@ -21,7 +21,7 @@ LINK="${DESTINATION}/models"
 aws s3 cp s3://quick-translates-env/.env ${QT_DIR}
 
 # changing ownership of folder
-sudo chown -R ubuntu:www-data ${QT_DIR}
+sudo chown -R ubuntu:ubuntu ${QT_DIR}
 
 # change file permissions to -rw-r--r--
 sudo find ${QT_DIR} -type f -exec chmod 644 {} \;
