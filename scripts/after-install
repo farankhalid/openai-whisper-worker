@@ -27,7 +27,7 @@ sudo find ${QT_DIR} -type f -exec chmod 644 {} \;
 sudo find ${QT_DIR} -type d -exec chmod 755 {} \;
 
 # make whisper executable
-chmod +x ${QT_DIR}/whisper/generate_transcript.sh
+chmod +x ${QT_DIR}/whisper/generate_transcript.sh ${QT_DIR}/whisper/generate_transcript_c.sh
 
 # activate virtual env
 source ${QT_ENV_DIR}/bin/activate
