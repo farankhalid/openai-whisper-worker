@@ -546,7 +546,7 @@ def process_job():
 
             download_file_name = "".join([job_id, ".mp3"])
             output_file_path = os.path.join(
-                os.environ.get("DATA_DIR"), "data/data", download_file_name
+                os.environ.get("DATA_DIR"), "data", download_file_name
             )
 
             try:
@@ -654,21 +654,21 @@ def process_job():
                         {
                             "statusCode": 500,
                             "message": "An error occurred: " + str(e),
-                            "progress": 30,
+                            "progress": 40,
                         },
                     )
                 return
 
             command = [
-                "./whisper/generate_transcript.sh",
+                "./whisper/generate_transcript_c.sh",
                 "-f",
                 output_file_path,
                 "-l",
                 language,
                 "-d",
-                os.path.join(os.environ.get("DATA_DIR"), "data/models"),
+                os.path.join(os.environ.get("DATA_DIR"), os.environ.get("MODEL_DIR")),
                 "-o",
-                os.path.join(os.environ.get("DATA_DIR"), "data/outputs", job_id),
+                os.path.join(os.environ.get("DATA_DIR"), "outputs", job_id),
                 "-m",
                 os.environ.get("MODEL"),
                 "-h",
@@ -717,7 +717,7 @@ def process_job():
                 return
 
             output_folder = os.path.join(
-                os.environ.get("DATA_DIR"), "data/outputs", job_id
+                os.environ.get("DATA_DIR"), "outputs", job_id
             )
 
             rtl_language = [
@@ -908,19 +908,17 @@ def process_job():
             zip_file_url = (
                 f"https://{os.environ.get('AWS_S3_CUSTOM_DOMAIN')}/{upload_zip_key}"
             )
-            response_data = {
-                "zip_file_url": zip_file_url,
-                "message": "Job completed with a success flag!",
-            }
-            logging.info(f"Response Data: {response_data}")
+
+            logging.info(f"Zipped file URL: {zip_file_url}")
 
             pusher.trigger(
                 job_id,
                 "job-update",
                 {
                     "statusCode": 200,
-                    "message": response_data,
+                    "message": "Job completed with a success flag!",
                     "progress": 100,
+                    "zip_file_url": zip_file_url,
                 },
             )
             try:
