@@ -14,6 +14,9 @@ exec 1>/home/ubuntu/quick-translates-api-worker/scripts/logging/after-install.lo
 
 QT_DIR="/home/ubuntu/quick-translates-api-worker"
 QT_ENV_DIR="/home/ubuntu/quick-translates-api-worker-env"
+SOURCE="/home/ubuntu/models"
+DESTINATION="${QT_DIR}/data"
+LINK="${DESTINATION}/models"
 
 aws s3 cp s3://quick-translates-env/.env ${QT_DIR}
 
@@ -34,4 +37,12 @@ source ${QT_ENV_DIR}/bin/activate
 
 # install dependencies
 ${QT_ENV_DIR}/bin/pip install -r ${QT_DIR}/requirements/production.txt
+
+
+if [ ! -L "$LINK" ]; then
+  ln -s "$SOURCE" "$DESTINATION"
+  echo "Symbolic link created: $SOURCE -> $DESTINATION"
+else
+  echo "Symbolic link $LINK already exists."
+fi
 
