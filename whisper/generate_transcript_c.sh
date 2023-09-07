@@ -11,9 +11,8 @@ trap 'echo "\"${last_command}\" command filed with exit code $?."' EXIT
 exec 3>&1 4>&2
 trap 'exec 2>&4 1>&3' 0 1 2 3
 exec 1>/home/ubuntu/quick-translates-api-worker/whisper/execution.log 2>&1
-#exec 1>/home/faran/PycharmProjects/quick-translates-api-worker/quick-translates-api-worker/whisper/execution.log 2>&1
 
-source /home/ubuntu/.bashrc
+set -e
 
 usage() {
   echo "Usage: $0 -f file_name -l language -d model_dir -o output_dir -m model -h device -t threads -j job -e env"
@@ -66,3 +65,5 @@ else
 fi
 
 echo "Transcription complete."
+
+exit 0

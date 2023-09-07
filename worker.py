@@ -516,6 +516,25 @@ def process_job():
                         "progress": 10,
                     },
                 )
+                try:
+                    logging.info(f"Deleting message from the queue.")
+                    # Delete the message after processing is complete
+                    sqs.delete_message(
+                        QueueUrl=os.environ.get("WORKER_QUEUE_URL"),
+                        ReceiptHandle=receipt_handle,
+                    )
+                    logging.info("Message deleted successfully.")
+                except Exception as e:
+                    logging.error(f"An error occurred: {traceback.format_exc()}")
+                    pusher.trigger(
+                        job_id,
+                        "job-update",
+                        {
+                            "statusCode": 500,
+                            "message": "An error occurred: " + str(e),
+                            "progress": 10,
+                        },
+                    )
                 return
 
             try:
@@ -542,6 +561,25 @@ def process_job():
                         "progress": 20,
                     },
                 )
+                try:
+                    logging.info(f"Deleting message from the queue.")
+                    # Delete the message after processing is complete
+                    sqs.delete_message(
+                        QueueUrl=os.environ.get("WORKER_QUEUE_URL"),
+                        ReceiptHandle=receipt_handle,
+                    )
+                    logging.info("Message deleted successfully.")
+                except Exception as e:
+                    logging.error(f"An error occurred: {traceback.format_exc()}")
+                    pusher.trigger(
+                        job_id,
+                        "job-update",
+                        {
+                            "statusCode": 500,
+                            "message": "An error occurred: " + str(e),
+                            "progress": 20,
+                        },
+                    )
                 return
 
             download_file_name = "".join([job_id, ".mp3"])
@@ -579,6 +617,25 @@ def process_job():
                         "progress": 30,
                     },
                 )
+                try:
+                    logging.info(f"Deleting message from the queue.")
+                    # Delete the message after processing is complete
+                    sqs.delete_message(
+                        QueueUrl=os.environ.get("WORKER_QUEUE_URL"),
+                        ReceiptHandle=receipt_handle,
+                    )
+                    logging.info("Message deleted successfully.")
+                except Exception as e:
+                    logging.error(f"An error occurred: {traceback.format_exc()}")
+                    pusher.trigger(
+                        job_id,
+                        "job-update",
+                        {
+                            "statusCode": 500,
+                            "message": "An error occurred: " + str(e),
+                            "progress": 30,
+                        },
+                    )
                 return
 
             logging.info(
@@ -714,6 +771,25 @@ def process_job():
                         "progress": 60,
                     },
                 )
+                try:
+                    logging.info(f"Deleting message from the queue.")
+                    # Delete the message after processing is complete
+                    sqs.delete_message(
+                        QueueUrl=os.environ.get("WORKER_QUEUE_URL"),
+                        ReceiptHandle=receipt_handle,
+                    )
+                    logging.info("Message deleted successfully.")
+                except Exception as e:
+                    logging.error(f"An error occurred: {traceback.format_exc()}")
+                    pusher.trigger(
+                        job_id,
+                        "job-update",
+                        {
+                            "statusCode": 500,
+                            "message": "An error occurred: " + str(e),
+                            "progress": 60,
+                        },
+                    )
                 return
 
             output_folder = os.path.join(os.environ.get("DATA_DIR"), "outputs", job_id)
@@ -757,6 +833,25 @@ def process_job():
                                 "progress": 65,
                             },
                         )
+                        try:
+                            logging.info(f"Deleting message from the queue.")
+                            # Delete the message after processing is complete
+                            sqs.delete_message(
+                                QueueUrl=os.environ.get("WORKER_QUEUE_URL"),
+                                ReceiptHandle=receipt_handle,
+                            )
+                            logging.info("Message deleted successfully.")
+                        except Exception as e:
+                            logging.error(f"An error occurred: {traceback.format_exc()}")
+                            pusher.trigger(
+                                job_id,
+                                "job-update",
+                                {
+                                    "statusCode": 500,
+                                    "message": "An error occurred: " + str(e),
+                                    "progress": 65,
+                                },
+                            )
                         return
                     try:
                         logging.info("Translating TXT file.")
@@ -785,6 +880,25 @@ def process_job():
                                 "progress": 70,
                             },
                         )
+                        try:
+                            logging.info(f"Deleting message from the queue.")
+                            # Delete the message after processing is complete
+                            sqs.delete_message(
+                                QueueUrl=os.environ.get("WORKER_QUEUE_URL"),
+                                ReceiptHandle=receipt_handle,
+                            )
+                            logging.info("Message deleted successfully.")
+                        except Exception as e:
+                            logging.error(f"An error occurred: {traceback.format_exc()}")
+                            pusher.trigger(
+                                job_id,
+                                "job-update",
+                                {
+                                    "statusCode": 500,
+                                    "message": "An error occurred: " + str(e),
+                                    "progress": 70,
+                                },
+                            )
                         return
                     os.remove(output_folder + f"/{job_id}.srt")
                 else:
@@ -815,6 +929,25 @@ def process_job():
                                 "progress": 75,
                             },
                         )
+                        try:
+                            logging.info(f"Deleting message from the queue.")
+                            # Delete the message after processing is complete
+                            sqs.delete_message(
+                                QueueUrl=os.environ.get("WORKER_QUEUE_URL"),
+                                ReceiptHandle=receipt_handle,
+                            )
+                            logging.info("Message deleted successfully.")
+                        except Exception as e:
+                            logging.error(f"An error occurred: {traceback.format_exc()}")
+                            pusher.trigger(
+                                job_id,
+                                "job-update",
+                                {
+                                    "statusCode": 500,
+                                    "message": "An error occurred: " + str(e),
+                                    "progress": 75,
+                                },
+                            )
                         return
                     try:
                         logging.info("Translating TXT file.")
@@ -843,6 +976,25 @@ def process_job():
                                 "progress": 80,
                             },
                         )
+                        try:
+                            logging.info(f"Deleting message from the queue.")
+                            # Delete the message after processing is complete
+                            sqs.delete_message(
+                                QueueUrl=os.environ.get("WORKER_QUEUE_URL"),
+                                ReceiptHandle=receipt_handle,
+                            )
+                            logging.info("Message deleted successfully.")
+                        except Exception as e:
+                            logging.error(f"An error occurred: {traceback.format_exc()}")
+                            pusher.trigger(
+                                job_id,
+                                "job-update",
+                                {
+                                    "statusCode": 500,
+                                    "message": "An error occurred: " + str(e),
+                                    "progress": 80,
+                                },
+                            )
                         return
                     os.remove(output_folder + f"/{job_id}.srt")
 
@@ -896,6 +1048,25 @@ def process_job():
                         "progress": 90,
                     },
                 )
+                try:
+                    logging.info(f"Deleting message from the queue.")
+                    # Delete the message after processing is complete
+                    sqs.delete_message(
+                        QueueUrl=os.environ.get("WORKER_QUEUE_URL"),
+                        ReceiptHandle=receipt_handle,
+                    )
+                    logging.info("Message deleted successfully.")
+                except Exception as e:
+                    logging.error(f"An error occurred: {traceback.format_exc()}")
+                    pusher.trigger(
+                        job_id,
+                        "job-update",
+                        {
+                            "statusCode": 500,
+                            "message": "An error occurred: " + str(e),
+                            "progress": 90,
+                        },
+                    )
                 return
 
             logging.info(f"Removing {zip_filename} file...")
