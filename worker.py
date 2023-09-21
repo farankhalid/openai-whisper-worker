@@ -512,7 +512,7 @@ def process_job():
                     "job-update",
                     {
                         "statusCode": 500,
-                        "message": "An error occurred: " + str(e),
+                        "message": str(e),
                         "progress": 10,
                     },
                 )
@@ -531,7 +531,7 @@ def process_job():
                         "job-update",
                         {
                             "statusCode": 500,
-                            "message": "An error occurred: " + str(e),
+                            "message": str(e),
                             "progress": 10,
                         },
                     )
@@ -557,7 +557,7 @@ def process_job():
                     "job-update",
                     {
                         "statusCode": 500,
-                        "message": "An error occurred: " + str(e),
+                        "message": str(e),
                         "progress": 20,
                     },
                 )
@@ -576,7 +576,7 @@ def process_job():
                         "job-update",
                         {
                             "statusCode": 500,
-                            "message": "An error occurred: " + str(e),
+                            "message": str(e),
                             "progress": 20,
                         },
                     )
@@ -613,7 +613,7 @@ def process_job():
                     "job-update",
                     {
                         "statusCode": 500,
-                        "message": "An error occurred: " + str(e),
+                        "message": str(e),
                         "progress": 30,
                     },
                 )
@@ -632,7 +632,7 @@ def process_job():
                         "job-update",
                         {
                             "statusCode": 500,
-                            "message": "An error occurred: " + str(e),
+                            "message": str(e),
                             "progress": 30,
                         },
                     )
@@ -710,7 +710,7 @@ def process_job():
                         "job-update",
                         {
                             "statusCode": 500,
-                            "message": "An error occurred: " + str(e),
+                            "message": str(e),
                             "progress": 40,
                         },
                     )
@@ -758,16 +758,17 @@ def process_job():
                     },
                 )
                 logging.info(
-                    f"Whisper ran successfully with return code: {result.returncode}"
+                    f"Whisper ran with return code: {result.returncode}"
                 )
             except Exception as e:
                 logging.error(f"An error occurred: {traceback.format_exc()}")
+
                 pusher.trigger(
                     job_id,
                     "job-update",
                     {
                         "statusCode": 500,
-                        "message": "An error occurred: " + str(e),
+                        "message": str(e),
                         "progress": 60,
                     },
                 )
@@ -781,12 +782,13 @@ def process_job():
                     logging.info("Message deleted successfully.")
                 except Exception as e:
                     logging.error(f"An error occurred: {traceback.format_exc()}")
+                    print('Hello i am an error: ', str(e))
                     pusher.trigger(
                         job_id,
                         "job-update",
                         {
                             "statusCode": 500,
-                            "message": "An error occurred: " + str(e),
+                            "message": str(e),
                             "progress": 60,
                         },
                     )
@@ -829,7 +831,7 @@ def process_job():
                             "job-update",
                             {
                                 "statusCode": 500,
-                                "message": "An error occurred: " + str(e),
+                                "message": str(e),
                                 "progress": 65,
                             },
                         )
@@ -848,7 +850,7 @@ def process_job():
                                 "job-update",
                                 {
                                     "statusCode": 500,
-                                    "message": "An error occurred: " + str(e),
+                                    "message": str(e),
                                     "progress": 65,
                                 },
                             )
@@ -876,7 +878,7 @@ def process_job():
                             "job-update",
                             {
                                 "statusCode": 500,
-                                "message": "An error occurred: " + str(e),
+                                "message": str(e),
                                 "progress": 70,
                             },
                         )
@@ -895,7 +897,7 @@ def process_job():
                                 "job-update",
                                 {
                                     "statusCode": 500,
-                                    "message": "An error occurred: " + str(e),
+                                    "message": str(e),
                                     "progress": 70,
                                 },
                             )
@@ -925,7 +927,7 @@ def process_job():
                             "job-update",
                             {
                                 "statusCode": 500,
-                                "message": "An error occurred: " + str(e),
+                                "message": str(e),
                                 "progress": 75,
                             },
                         )
@@ -944,7 +946,7 @@ def process_job():
                                 "job-update",
                                 {
                                     "statusCode": 500,
-                                    "message": "An error occurred: " + str(e),
+                                    "message": str(e),
                                     "progress": 75,
                                 },
                             )
@@ -972,7 +974,7 @@ def process_job():
                             "job-update",
                             {
                                 "statusCode": 500,
-                                "message": "An error occurred: " + str(e),
+                                "message": str(e),
                                 "progress": 80,
                             },
                         )
@@ -991,7 +993,7 @@ def process_job():
                                 "job-update",
                                 {
                                     "statusCode": 500,
-                                    "message": "An error occurred: " + str(e),
+                                    "message": str(e),
                                     "progress": 80,
                                 },
                             )
@@ -1044,7 +1046,7 @@ def process_job():
                     "job-update",
                     {
                         "statusCode": 500,
-                        "message": "An error occurred: " + str(e),
+                        "message": str(e),
                         "progress": 90,
                     },
                 )
@@ -1063,7 +1065,7 @@ def process_job():
                         "job-update",
                         {
                             "statusCode": 500,
-                            "message": "An error occurred: " + str(e),
+                            "message": str(e),
                             "progress": 90,
                         },
                     )
