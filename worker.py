@@ -762,7 +762,7 @@ def process_job():
                 )
             except Exception as e:
                 logging.error(f"An error occurred: {traceback.format_exc()}")
-
+                print('Hello i am an error: ', str(e))
                 pusher.trigger(
                     job_id,
                     "job-update",
@@ -782,7 +782,6 @@ def process_job():
                     logging.info("Message deleted successfully.")
                 except Exception as e:
                     logging.error(f"An error occurred: {traceback.format_exc()}")
-                    print('Hello i am an error: ', str(e))
                     pusher.trigger(
                         job_id,
                         "job-update",
