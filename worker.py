@@ -25,7 +25,7 @@ logging.basicConfig(
 )
 
 
-def translate_doc(srt_file_path, target_language):
+def translate_doc(file_path, target_language):
     """
     Translate the subtitles in an SRT (SubRip) file to the specified target language and save as a new SRT file.
 
@@ -42,7 +42,7 @@ def translate_doc(srt_file_path, target_language):
     - Exception: Any other exceptions raised during the translation or file saving process.
 
     Example:
-    >>> translate_doc("input.srt", "fr")
+    >>> translate_doc("input.txt", "fr")
 
     This function reads the content of an SRT file, translates each subtitle line using the 'translate_document' function,
     and then saves the translated subtitles as a new SRT file with the target language code appended to the filename.
@@ -53,15 +53,15 @@ def translate_doc(srt_file_path, target_language):
     """
 
     # Read the content of the SRT file
-    with open(srt_file_path, "rb") as file:
-        srt_content = file.read()
+    with open(file_path, "r") as file:
+        file_content = file.read()
 
     # Translate the content using AWS Translate
-    translated_content = translate_document(srt_content, target_language)
+    translated_content = translate_document(file_content, target_language)
 
     # Save the translated content to a new SRT file
-    translated_srt_path = srt_file_path.replace(".srt", f"_{target_language}.srt")
-    with open(translated_srt_path, "wb") as file:
+    translated_srt_path = file_path.replace(".txt", f"_{target_language}.txt")
+    with open(translated_srt_path, "w") as file:
         file.write(translated_content)
 
 
