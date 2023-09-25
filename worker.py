@@ -53,7 +53,7 @@ def translate_doc(file_path, target_language):
     """
 
     # Read the content of the SRT file
-    with open(file_path, "r") as file:
+    with open(file_path, "rb") as file:
         file_content = file.read()
 
     # Translate the content using AWS Translate
@@ -61,7 +61,7 @@ def translate_doc(file_path, target_language):
 
     # Save the translated content to a new SRT file
     translated_srt_path = file_path.replace(".txt", f"_{target_language}.txt")
-    with open(translated_srt_path, "w") as file:
+    with open(translated_srt_path, "wb") as file:
         file.write(translated_content)
 
 
