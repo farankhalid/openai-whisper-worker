@@ -829,22 +829,14 @@ def process_job():
             os.remove(output_folder + f"/{job_id}.json")
             os.remove(output_folder + f"/{job_id}.vtt")
             os.remove(output_folder + f"/{job_id}.tsv")
-            file_size_limit_txt = is_file_size_within_limit(os.path.join(output_folder, f"{job_id}.txt"), 100 * 1024)
-
-            # rtl_language = [
-            #     "ar",
-            #     "fa-AF",
-            #     "fa",
-            #     "he",
-            #     "ps",
-            #     "ur"
-            # ]
+            file_size_limit_txt = is_file_size_within_limit(
+                os.path.join(output_folder, f"{job_id}.txt"), 100 * 1024
+            )
 
             logging.info(f"Translate flag set to {aws_translate}")
             logging.info(f"Output folder set to {output_folder}")
 
             if aws_translate:
-                # if sub_language in rtl_language:
                 try:
                     logging.info("Translating SRT file.")
                     translate_srt(
@@ -895,7 +887,9 @@ def process_job():
                 if file_size_limit_txt:
                     try:
                         logging.info("File size is within the limits.")
-                        logging.info("Translating TXT file using document translation operation.")
+                        logging.info(
+                            "Translating TXT file using document translation operation."
+                        )
                         translate_doc(
                             os.path.join(output_folder, f"{job_id}.txt"),
                             sub_language,
@@ -929,7 +923,9 @@ def process_job():
                             )
                             logging.info("Message deleted successfully.")
                         except Exception as e:
-                            logging.error(f"An error occurred: {traceback.format_exc()}")
+                            logging.error(
+                                f"An error occurred: {traceback.format_exc()}"
+                            )
                             pusher.trigger(
                                 job_id,
                                 "job-update",
@@ -943,7 +939,9 @@ def process_job():
                 else:
                     try:
                         logging.info("File size is not within the limits.")
-                        logging.info("Translating TXT file using line-by-line operation.")
+                        logging.info(
+                            "Translating TXT file using line-by-line operation."
+                        )
                         translate_txt(
                             os.path.join(output_folder, f"{job_id}.txt"),
                             sub_language,
@@ -978,7 +976,9 @@ def process_job():
                             )
                             logging.info("Message deleted successfully.")
                         except Exception as e:
-                            logging.error(f"An error occurred: {traceback.format_exc()}")
+                            logging.error(
+                                f"An error occurred: {traceback.format_exc()}"
+                            )
                             pusher.trigger(
                                 job_id,
                                 "job-update",
@@ -989,106 +989,8 @@ def process_job():
                                 },
                             )
                         return
-                # os.remove(output_folder + f"/{job_id}.srt")
-                # os.remove(output_folder + f"/{job_id}.txt")
-                # else:
-                #     try:
-                #         logging.info("Translating SRT file.")
-                #         translate_doc(
-                #             os.path.join(output_folder, f"{job_id}.srt"),
-                #             sub_language,
-                #         )
-                #         pusher.trigger(
-                #             job_id,
-                #             "job-update",
-                #             {
-                #                 "statusCode": 200,
-                #                 "message": "SRT compiled successfully.",
-                #                 "progress": 75,
-                #             },
-                #         )
-                #         logging.info("SRT compiled successfully.")
-                #     except Exception as e:
-                #         logging.error(f"An error occurred: {traceback.format_exc()}")
-                #         pusher.trigger(
-                #             job_id,
-                #             "job-update",
-                #             {
-                #                 "statusCode": 500,
-                #                 "message": str(e),
-                #                 "progress": 75,
-                #             },
-                #         )
-                #         try:
-                #             logging.info(f"Deleting message from the queue.")
-                #             # Delete the message after processing is complete
-                #             sqs.delete_message(
-                #                 QueueUrl=os.environ.get("WORKER_QUEUE_URL"),
-                #                 ReceiptHandle=receipt_handle,
-                #             )
-                #             logging.info("Message deleted successfully.")
-                #         except Exception as e:
-                #             logging.error(f"An error occurred: {traceback.format_exc()}")
-                #             pusher.trigger(
-                #                 job_id,
-                #                 "job-update",
-                #                 {
-                #                     "statusCode": 500,
-                #                     "message": str(e),
-                #                     "progress": 75,
-                #                 },
-                #             )
-                #         return
-                #     try:
-                #         logging.info("Translating TXT file.")
-                #         translate_doc(
-                #             os.path.join(output_folder, f"{job_id}.txt"),
-                #             sub_language,
-                #         )
-                #         pusher.trigger(
-                #             job_id,
-                #             "job-update",
-                #             {
-                #                 "statusCode": 200,
-                #                 "message": "TXT compiled successfully.",
-                #                 "progress": 80,
-                #             },
-                #         )
-                #         logging.info("TXT compiled successfully.")
-                #     except Exception as e:
-                #         logging.error(f"An error occurred: {traceback.format_exc()}")
-                #         pusher.trigger(
-                #             job_id,
-                #             "job-update",
-                #             {
-                #                 "statusCode": 500,
-                #                 "message": str(e),
-                #                 "progress": 80,
-                #             },
-                #         )
-                #         try:
-                #             logging.info(f"Deleting message from the queue.")
-                #             # Delete the message after processing is complete
-                #             sqs.delete_message(
-                #                 QueueUrl=os.environ.get("WORKER_QUEUE_URL"),
-                #                 ReceiptHandle=receipt_handle,
-                #             )
-                #             logging.info("Message deleted successfully.")
-                #         except Exception as e:
-                #             logging.error(f"An error occurred: {traceback.format_exc()}")
-                #             pusher.trigger(
-                #                 job_id,
-                #                 "job-update",
-                #                 {
-                #                     "statusCode": 500,
-                #                     "message": str(e),
-                #                     "progress": 80,
-                #                 },
-                #             )
-                #         return
-                #     os.remove(output_folder + f"/{job_id}.srt")
-
-            os.remove(output_file_path)
+            os.remove(output_folder + f"/{job_id}.srt")
+            os.remove(output_folder + f"/{job_id}.txt")
 
             logging.info(f"Zipping Files to {output_folder}...")
 
@@ -1159,6 +1061,7 @@ def process_job():
             logging.info(f"Removing {zip_filename} file...")
             # Delete the temporary zip file
             os.remove(zip_filename)
+            os.remove(output_file_path)
 
             # Return the URL of the zip file to the user
             zip_file_url = (
