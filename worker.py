@@ -826,6 +826,9 @@ def process_job():
                 return
 
             output_folder = os.path.join(os.environ.get("DATA_DIR"), "outputs", job_id)
+            os.remove(output_folder + f"/{job_id}.json")
+            os.remove(output_folder + f"/{job_id}.vtt")
+            os.remove(output_folder + f"/{job_id}.tsv")
             file_size_limit_txt = is_file_size_within_limit(os.path.join(output_folder, f"{job_id}.txt"), 100 * 1024)
 
             # rtl_language = [
@@ -891,7 +894,8 @@ def process_job():
                     return
                 if file_size_limit_txt:
                     try:
-                        logging.info("Translating TXT file.")
+                        logging.info("File size is within the limits.")
+                        logging.info("Translating TXT file using document translation operation.")
                         translate_doc(
                             os.path.join(output_folder, f"{job_id}.txt"),
                             sub_language,
@@ -938,7 +942,8 @@ def process_job():
                         return
                 else:
                     try:
-                        logging.info("Translating TXT file.")
+                        logging.info("File size is not within the limits.")
+                        logging.info("Translating TXT file using line-by-line operation.")
                         translate_txt(
                             os.path.join(output_folder, f"{job_id}.txt"),
                             sub_language,
@@ -984,8 +989,8 @@ def process_job():
                                 },
                             )
                         return
-                os.remove(output_folder + f"/{job_id}.srt")
-                os.remove(output_folder + f"/{job_id}.txt")
+                # os.remove(output_folder + f"/{job_id}.srt")
+                # os.remove(output_folder + f"/{job_id}.txt")
                 # else:
                 #     try:
                 #         logging.info("Translating SRT file.")
@@ -1084,9 +1089,6 @@ def process_job():
                 #     os.remove(output_folder + f"/{job_id}.srt")
 
             os.remove(output_file_path)
-            os.remove(output_folder + f"/{job_id}.json")
-            os.remove(output_folder + f"/{job_id}.vtt")
-            os.remove(output_folder + f"/{job_id}.tsv")
 
             logging.info(f"Zipping Files to {output_folder}...")
 
