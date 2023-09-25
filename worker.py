@@ -185,6 +185,22 @@ def translate_text(text, target_language):
     return response["TranslatedText"]
 
 
+def translate_txt(txt_file_path, target_language):
+    translated_lines = []  # Store translated lines
+
+    with open(txt_file_path, "r") as file:
+        for line in file:
+            translated_line = translate_text(line.strip(), target_language)
+            translated_lines.append(translated_line)
+
+    translated_txt = "\n".join(translated_lines)
+
+    translated_txt_path = txt_file_path.replace(".txt", f"_{target_language}.txt")
+
+    with open(translated_txt_path, "w") as translated_file:
+        translated_file.write(translated_txt)
+
+
 def create_transcode_job(input_key, output_key):
     """
     Create a transcoding job using AWS Elemental MediaConvert to convert media files.
@@ -354,6 +370,21 @@ def initialize_pusher():
     return pusher
 
 
+def is_file_size_within_limit(file_path, max_size_bytes):
+    """
+    Check if the size of a file is within a specified limit.
+
+    Parameters:
+    - file_path (str): The path to the file to check.
+    - max_size_bytes (int): The maximum allowed file size in bytes.
+
+    Returns:
+    - bool: True if the file size is within the limit, False otherwise.
+    """
+    file_size = os.path.getsize(file_path)
+    return file_size <= max_size_bytes
+
+
 def trigger_pusher_event(channel, event_name, data):
     pass
 
@@ -371,10 +402,7 @@ def process_message(message):
 
 
 def process_job():
-    # Record start time
-    start_time = time.perf_counter()
-
-    common_language_codes = [
+    language_codes = [
         "af",
         "sq",
         "am",
@@ -386,15 +414,19 @@ def process_job():
         "bg",
         "ca",
         "zh",
+        "zh-TW",
         "hr",
         "cs",
         "da",
+        "fa-AF",
         "nl",
         "en",
         "et",
         "fa",
+        "tl",
         "fi",
         "fr",
+        "fr-CA",
         "ka",
         "de",
         "el",
@@ -424,6 +456,7 @@ def process_job():
         "ps",
         "pl",
         "pt",
+        "pt-PT",
         "pa",
         "ro",
         "ru",
@@ -433,6 +466,7 @@ def process_job():
         "sl",
         "so",
         "es",
+        "es-MX",
         "sw",
         "sv",
         "ta",
@@ -642,7 +676,7 @@ def process_job():
                 f"File '{job_id}'.mp3 downloaded from {os.environ.get('AWS_STORAGE_BUCKET_NAME')} and saved to {output_file_path}."
             )
 
-            if sub_language in ["English", "en"]:
+            if sub_language == "en":
                 job = "translate"
                 aws_translate = False
                 pusher.trigger(
@@ -670,7 +704,7 @@ def process_job():
                     },
                 )
                 logging.info("Performing whisper transcribe...")
-            elif sub_language in common_language_codes:
+            elif sub_language in language_codes:
                 job = "translate"
                 aws_translate = True
                 pusher.trigger(
@@ -757,12 +791,10 @@ def process_job():
                         "progress": 60,
                     },
                 )
-                logging.info(
-                    f"Whisper ran with return code: {result.returncode}"
-                )
+                logging.info(f"Whisper ran with return code: {result.returncode}")
             except Exception as e:
                 logging.error(f"An error occurred: {traceback.format_exc()}")
-                print('Hello i am an error: ', str(e))
+                print("Hello i am an error: ", str(e))
                 pusher.trigger(
                     job_id,
                     "job-update",
@@ -794,35 +826,57 @@ def process_job():
                 return
 
             output_folder = os.path.join(os.environ.get("DATA_DIR"), "outputs", job_id)
+            file_size_limit_txt = is_file_size_within_limit(os.path.join(output_folder, f"{job_id}.txt"), 100 * 1024)
 
-            rtl_language = [
-                "Arabic",
-                "Hebrew",
-                "Farsi",
-                "Urdu",
-            ]
+            # rtl_language = [
+            #     "ar",
+            #     "fa-AF",
+            #     "fa",
+            #     "he",
+            #     "ps",
+            #     "ur"
+            # ]
 
             logging.info(f"Translate flag set to {aws_translate}")
             logging.info(f"Output folder set to {output_folder}")
 
             if aws_translate:
-                if sub_language in rtl_language:
+                # if sub_language in rtl_language:
+                try:
+                    logging.info("Translating SRT file.")
+                    translate_srt(
+                        os.path.join(output_folder, f"{job_id}.srt"),
+                        sub_language,
+                    )
+                    pusher.trigger(
+                        job_id,
+                        "job-update",
+                        {
+                            "statusCode": 200,
+                            "message": "SRT compiled successfully.",
+                            "progress": 65,
+                        },
+                    )
+                    logging.info("SRT compiled successfully.")
+                except Exception as e:
+                    logging.error(f"An error occurred: {traceback.format_exc()}")
+                    pusher.trigger(
+                        job_id,
+                        "job-update",
+                        {
+                            "statusCode": 500,
+                            "message": str(e),
+                            "progress": 65,
+                        },
+                    )
                     try:
-                        logging.info("Translating SRT file.")
-                        translate_srt(
-                            os.path.join(output_folder, f"{job_id}.srt"),
-                            sub_language,
+                        logging.info(f"Deleting message from the queue.")
+                        # Delete the message after processing is complete
+                        sqs.delete_message(
+                            QueueUrl=os.environ.get("WORKER_QUEUE_URL"),
+                            ReceiptHandle=receipt_handle,
                         )
-                        pusher.trigger(
-                            job_id,
-                            "job-update",
-                            {
-                                "statusCode": 200,
-                                "message": "SRT compiled successfully.",
-                                "progress": 65,
-                            },
-                        )
-                        logging.info("SRT compiled successfully.")
+                        logging.info("Message deleted successfully.")
                     except Exception as e:
                         logging.error(f"An error occurred: {traceback.format_exc()}")
                         pusher.trigger(
@@ -832,6 +886,34 @@ def process_job():
                                 "statusCode": 500,
                                 "message": str(e),
                                 "progress": 65,
+                            },
+                        )
+                    return
+                if file_size_limit_txt:
+                    try:
+                        logging.info("Translating TXT file.")
+                        translate_doc(
+                            os.path.join(output_folder, f"{job_id}.txt"),
+                            sub_language,
+                        )
+                        pusher.trigger(
+                            job_id,
+                            "job-update",
+                            {
+                                "statusCode": 200,
+                                "message": "TXT compiled successfully.",
+                                "progress": 70,
+                            },
+                        )
+                    except Exception as e:
+                        logging.error(f"An error occurred: {traceback.format_exc()}")
+                        pusher.trigger(
+                            job_id,
+                            "job-update",
+                            {
+                                "statusCode": 500,
+                                "message": str(e),
+                                "progress": 70,
                             },
                         )
                         try:
@@ -850,13 +932,14 @@ def process_job():
                                 {
                                     "statusCode": 500,
                                     "message": str(e),
-                                    "progress": 65,
+                                    "progress": 70,
                                 },
                             )
                         return
+                else:
                     try:
                         logging.info("Translating TXT file.")
-                        translate_doc(
+                        translate_txt(
                             os.path.join(output_folder, f"{job_id}.txt"),
                             sub_language,
                         )
@@ -901,103 +984,104 @@ def process_job():
                                 },
                             )
                         return
-                    os.remove(output_folder + f"/{job_id}.srt")
-                else:
-                    try:
-                        logging.info("Translating SRT file.")
-                        translate_doc(
-                            os.path.join(output_folder, f"{job_id}.srt"),
-                            sub_language,
-                        )
-                        pusher.trigger(
-                            job_id,
-                            "job-update",
-                            {
-                                "statusCode": 200,
-                                "message": "SRT compiled successfully.",
-                                "progress": 75,
-                            },
-                        )
-                        logging.info("SRT compiled successfully.")
-                    except Exception as e:
-                        logging.error(f"An error occurred: {traceback.format_exc()}")
-                        pusher.trigger(
-                            job_id,
-                            "job-update",
-                            {
-                                "statusCode": 500,
-                                "message": str(e),
-                                "progress": 75,
-                            },
-                        )
-                        try:
-                            logging.info(f"Deleting message from the queue.")
-                            # Delete the message after processing is complete
-                            sqs.delete_message(
-                                QueueUrl=os.environ.get("WORKER_QUEUE_URL"),
-                                ReceiptHandle=receipt_handle,
-                            )
-                            logging.info("Message deleted successfully.")
-                        except Exception as e:
-                            logging.error(f"An error occurred: {traceback.format_exc()}")
-                            pusher.trigger(
-                                job_id,
-                                "job-update",
-                                {
-                                    "statusCode": 500,
-                                    "message": str(e),
-                                    "progress": 75,
-                                },
-                            )
-                        return
-                    try:
-                        logging.info("Translating TXT file.")
-                        translate_doc(
-                            os.path.join(output_folder, f"{job_id}.txt"),
-                            sub_language,
-                        )
-                        pusher.trigger(
-                            job_id,
-                            "job-update",
-                            {
-                                "statusCode": 200,
-                                "message": "TXT compiled successfully.",
-                                "progress": 80,
-                            },
-                        )
-                        logging.info("TXT compiled successfully.")
-                    except Exception as e:
-                        logging.error(f"An error occurred: {traceback.format_exc()}")
-                        pusher.trigger(
-                            job_id,
-                            "job-update",
-                            {
-                                "statusCode": 500,
-                                "message": str(e),
-                                "progress": 80,
-                            },
-                        )
-                        try:
-                            logging.info(f"Deleting message from the queue.")
-                            # Delete the message after processing is complete
-                            sqs.delete_message(
-                                QueueUrl=os.environ.get("WORKER_QUEUE_URL"),
-                                ReceiptHandle=receipt_handle,
-                            )
-                            logging.info("Message deleted successfully.")
-                        except Exception as e:
-                            logging.error(f"An error occurred: {traceback.format_exc()}")
-                            pusher.trigger(
-                                job_id,
-                                "job-update",
-                                {
-                                    "statusCode": 500,
-                                    "message": str(e),
-                                    "progress": 80,
-                                },
-                            )
-                        return
-                    os.remove(output_folder + f"/{job_id}.srt")
+                os.remove(output_folder + f"/{job_id}.srt")
+                os.remove(output_folder + f"/{job_id}.txt")
+                # else:
+                #     try:
+                #         logging.info("Translating SRT file.")
+                #         translate_doc(
+                #             os.path.join(output_folder, f"{job_id}.srt"),
+                #             sub_language,
+                #         )
+                #         pusher.trigger(
+                #             job_id,
+                #             "job-update",
+                #             {
+                #                 "statusCode": 200,
+                #                 "message": "SRT compiled successfully.",
+                #                 "progress": 75,
+                #             },
+                #         )
+                #         logging.info("SRT compiled successfully.")
+                #     except Exception as e:
+                #         logging.error(f"An error occurred: {traceback.format_exc()}")
+                #         pusher.trigger(
+                #             job_id,
+                #             "job-update",
+                #             {
+                #                 "statusCode": 500,
+                #                 "message": str(e),
+                #                 "progress": 75,
+                #             },
+                #         )
+                #         try:
+                #             logging.info(f"Deleting message from the queue.")
+                #             # Delete the message after processing is complete
+                #             sqs.delete_message(
+                #                 QueueUrl=os.environ.get("WORKER_QUEUE_URL"),
+                #                 ReceiptHandle=receipt_handle,
+                #             )
+                #             logging.info("Message deleted successfully.")
+                #         except Exception as e:
+                #             logging.error(f"An error occurred: {traceback.format_exc()}")
+                #             pusher.trigger(
+                #                 job_id,
+                #                 "job-update",
+                #                 {
+                #                     "statusCode": 500,
+                #                     "message": str(e),
+                #                     "progress": 75,
+                #                 },
+                #             )
+                #         return
+                #     try:
+                #         logging.info("Translating TXT file.")
+                #         translate_doc(
+                #             os.path.join(output_folder, f"{job_id}.txt"),
+                #             sub_language,
+                #         )
+                #         pusher.trigger(
+                #             job_id,
+                #             "job-update",
+                #             {
+                #                 "statusCode": 200,
+                #                 "message": "TXT compiled successfully.",
+                #                 "progress": 80,
+                #             },
+                #         )
+                #         logging.info("TXT compiled successfully.")
+                #     except Exception as e:
+                #         logging.error(f"An error occurred: {traceback.format_exc()}")
+                #         pusher.trigger(
+                #             job_id,
+                #             "job-update",
+                #             {
+                #                 "statusCode": 500,
+                #                 "message": str(e),
+                #                 "progress": 80,
+                #             },
+                #         )
+                #         try:
+                #             logging.info(f"Deleting message from the queue.")
+                #             # Delete the message after processing is complete
+                #             sqs.delete_message(
+                #                 QueueUrl=os.environ.get("WORKER_QUEUE_URL"),
+                #                 ReceiptHandle=receipt_handle,
+                #             )
+                #             logging.info("Message deleted successfully.")
+                #         except Exception as e:
+                #             logging.error(f"An error occurred: {traceback.format_exc()}")
+                #             pusher.trigger(
+                #                 job_id,
+                #                 "job-update",
+                #                 {
+                #                     "statusCode": 500,
+                #                     "message": str(e),
+                #                     "progress": 80,
+                #                 },
+                #             )
+                #         return
+                #     os.remove(output_folder + f"/{job_id}.srt")
 
             os.remove(output_file_path)
             os.remove(output_folder + f"/{job_id}.json")
@@ -1108,6 +1192,5 @@ def process_job():
 if __name__ == "__main__":
     try:
         process_job()
-        logging.info("Job completed successfully!")
     except Exception as e:
         logging.error(f"An unexpected error occurred: {traceback.format_exc()}")
