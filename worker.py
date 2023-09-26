@@ -512,7 +512,6 @@ def process_job():
                 MaxNumberOfMessages=1,
                 WaitTimeSeconds=5,
             )
-            logging.info("SQS initialized successfully")
         except Exception:
             logging.error(f"An error occured: {traceback.format_exc()}")
 
