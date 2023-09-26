@@ -1004,10 +1004,12 @@ def process_job():
                             )
                         return
 
-            logging.info(f"Removing whisper generated {srt_file} and {txt_file} files.")
+                logging.info(
+                    f"Removing whisper generated {srt_file} and {txt_file} files."
+                )
 
-            os.remove(output_folder + f"/{job_id}.srt")
-            os.remove(output_folder + f"/{job_id}.txt")
+                os.remove(output_folder + f"/{job_id}.srt")
+                os.remove(output_folder + f"/{job_id}.txt")
 
             completed_process = subprocess.run(
                 ["ls", "-p", output_folder],
