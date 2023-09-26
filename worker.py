@@ -512,6 +512,7 @@ def process_job():
                 MaxNumberOfMessages=1,
                 WaitTimeSeconds=5,
             )
+            logging.info("SQS initialized successfully")
         except Exception:
             logging.error(f"An error occured: {traceback.format_exc()}")
 
@@ -529,11 +530,8 @@ def process_job():
             logging.info(f"sub_language: {sub_language}")
             logging.info(f"job_id: {job_id}")
 
-            # Process the message
-            logging.info(f'Processing message: {message["pusher_channel"]}')
-
             try:
-                logging.info("Creating mediaConvert job...")
+                logging.info("Creating mediaConvert job.")
                 mc_job_id = create_transcode_job(
                     input_key=file_uri,
                     output_key=job_id,
@@ -572,7 +570,7 @@ def process_job():
                 return
 
             try:
-                logging.info("Waiting for mediaConvert job to complete.")
+                logging.info(f"Waiting for mediaConvert job {mc_job_id} to complete.")
                 custom_mediaconvert_waiter(mc_job_id)
                 pusher.trigger(
                     job_id,
@@ -617,18 +615,21 @@ def process_job():
                 return
 
             download_file_name = "".join([job_id, ".mp3"])
-            output_file_path = os.path.join(
+            mp3_file = os.path.join(
                 os.environ.get("DATA_DIR"), "data", download_file_name
             )
-
+            logging.info(f"Output file is {mp3_file}")
             try:
+                logging.info(
+                    f'Downloading file {download_file_name} from s3://{os.path.join(os.environ.get("AWS_STORAGE_BUCKET_NAME") ,os.environ.get("OUTPUT_KEY_PREFIX"), download_file_name)} to {mp3_file}'
+                )
                 # Download the file from S3 and save it locally
                 s3.download_file(
                     os.environ.get("AWS_STORAGE_BUCKET_NAME"),
                     os.path.join(
                         os.environ.get("OUTPUT_KEY_PREFIX"), download_file_name
                     ),
-                    output_file_path,
+                    mp3_file,
                 )
                 pusher.trigger(
                     job_id,
@@ -639,7 +640,7 @@ def process_job():
                         "progress": 30,
                     },
                 )
-                logging.info("File downloaded successfully...")
+                logging.info(f"File {download_file_name} downloaded successfully.")
             except Exception as e:
                 logging.error(f"An error occurred: {traceback.format_exc()}")
                 pusher.trigger(
@@ -671,10 +672,6 @@ def process_job():
                         },
                     )
                 return
-
-            logging.info(
-                f"File '{job_id}'.mp3 downloaded from {os.environ.get('AWS_STORAGE_BUCKET_NAME')} and saved to {output_file_path}."
-            )
 
             if sub_language == "en":
                 job = "translate"
@@ -753,7 +750,7 @@ def process_job():
             command = [
                 "./whisper/generate_transcript_c.sh",
                 "-f",
-                output_file_path,
+                mp3_file,
                 "-l",
                 language,
                 "-d",
@@ -791,7 +788,9 @@ def process_job():
                         "progress": 60,
                     },
                 )
-                logging.info(f"Whisper ran with return code: {result.returncode}")
+                logging.info(
+                    f"Whisper ran successfully with return code: {result.returncode}"
+                )
             except subprocess.CalledProcessError as e:
                 logging.error(f"Error running Whisper: {traceback.format_exc()}")
                 pusher.trigger(
@@ -825,21 +824,38 @@ def process_job():
                 return
 
             output_folder = os.path.join(os.environ.get("DATA_DIR"), "outputs", job_id)
+
             os.remove(output_folder + f"/{job_id}.json")
             os.remove(output_folder + f"/{job_id}.vtt")
             os.remove(output_folder + f"/{job_id}.tsv")
+
+            completed_process = subprocess.run(
+                ["ls", "-p", output_folder],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=True,
+            )
+            result = completed_process.stdout.replace("\n", ", ")
+            logging.info(
+                f"Deleted .json, .vtt, .tsv from {output_folder}. Remains are {result}."
+            )
+
             file_size_limit_txt = is_file_size_within_limit(
                 os.path.join(output_folder, f"{job_id}.txt"), 100 * 1024
             )
 
             logging.info(f"Translate flag set to {aws_translate}")
-            logging.info(f"Output folder set to {output_folder}")
+            logging.info(f"Txt file size is: {file_size_limit_txt}")
+
+            srt_file = os.path.join(output_folder, f"{job_id}.srt")
+            txt_file = os.path.join(output_folder, f"{job_id}.txt")
 
             if aws_translate:
                 try:
-                    logging.info("Translating SRT file.")
+                    logging.info(f"Translating SRT file {srt_file}.")
                     translate_srt(
-                        os.path.join(output_folder, f"{job_id}.srt"),
+                        srt_file,
                         sub_language,
                     )
                     pusher.trigger(
@@ -887,10 +903,10 @@ def process_job():
                     try:
                         logging.info("File size is within the limits.")
                         logging.info(
-                            "Translating TXT file using document translation operation."
+                            f"Translating TXT file {txt_file} using document translation operation."
                         )
                         translate_doc(
-                            os.path.join(output_folder, f"{job_id}.txt"),
+                            txt_file,
                             sub_language,
                         )
                         pusher.trigger(
@@ -939,10 +955,10 @@ def process_job():
                     try:
                         logging.info("File size is not within the limits.")
                         logging.info(
-                            "Translating TXT file using line-by-line operation."
+                            f"Translating TXT file {txt_file} using line-by-line operation."
                         )
                         translate_txt(
-                            os.path.join(output_folder, f"{job_id}.txt"),
+                            txt_file,
                             sub_language,
                         )
                         pusher.trigger(
@@ -988,6 +1004,9 @@ def process_job():
                                 },
                             )
                         return
+
+            logging.info(f"Removing whisper generated {srt_file} and {txt_file} files.")
+
             os.remove(output_folder + f"/{job_id}.srt")
             os.remove(output_folder + f"/{job_id}.txt")
 
@@ -998,15 +1017,16 @@ def process_job():
                 text=True,
                 check=True,
             )
-            result = completed_process.stdout.replace('\n', ', ')
+            result = completed_process.stdout.replace("\n", ", ")
             logging.info(f"Zipping {result} to {output_folder}...")
+
             zip_filename = f"{output_folder}.zip"
             with zipfile.ZipFile(zip_filename, "w") as zip_file:
                 for root, dirs, files in os.walk(output_folder):
                     for file in files:
                         zip_file.write(os.path.join(root, file), file)
 
-            logging.info(f"Removing {output_folder}...")
+            logging.info(f"Removing {output_folder}.")
             # Delete the temporary output folder
             shutil.rmtree(output_folder)
 
@@ -1067,7 +1087,7 @@ def process_job():
             logging.info(f"Removing {zip_filename} file...")
             # Delete the temporary zip file
             os.remove(zip_filename)
-            os.remove(output_file_path)
+            os.remove(mp3_file)
 
             # Return the URL of the zip file to the user
             zip_file_url = (
