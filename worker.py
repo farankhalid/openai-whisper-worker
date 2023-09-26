@@ -998,9 +998,9 @@ def process_job():
                 text=True,
                 check=True,
             )
-
+            result = completed_process.stdout.replace('\n', ', ')
+            logging.info(f"Zipping {result} to {output_folder}...")
             zip_filename = f"{output_folder}.zip"
-            logging.info(f"Zipping {completed_process.stdout} to {output_folder}...")
             with zipfile.ZipFile(zip_filename, "w") as zip_file:
                 for root, dirs, files in os.walk(output_folder):
                     for file in files:
