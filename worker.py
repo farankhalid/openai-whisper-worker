@@ -1029,7 +1029,7 @@ def process_job():
 
             logging.info(f"Removing {output_folder}.")
             # Delete the temporary output folder
-            # shutil.rmtree(output_folder)
+            shutil.rmtree(output_folder)
 
             upload_zip_key = os.path.join("whisper_outputs", job_id + ".zip")
 
@@ -1087,8 +1087,8 @@ def process_job():
 
             logging.info(f"Removing {zip_filename} file...")
             # Delete the temporary zip file
-            # os.remove(zip_filename)
-            # os.remove(mp3_file)
+            os.remove(zip_filename)
+            os.remove(mp3_file)
 
             # Return the URL of the zip file to the user
             zip_file_url = (
