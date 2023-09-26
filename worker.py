@@ -792,9 +792,8 @@ def process_job():
                     },
                 )
                 logging.info(f"Whisper ran with return code: {result.returncode}")
-            except Exception as e:
-                logging.error(f"An error occurred: {traceback.format_exc()}")
-                print("Hello i am an error: ", str(e))
+            except subprocess.CalledProcessError as e:
+                logging.error(f"Error running Whisper: {traceback.format_exc()}")
                 pusher.trigger(
                     job_id,
                     "job-update",
@@ -992,9 +991,16 @@ def process_job():
             os.remove(output_folder + f"/{job_id}.srt")
             os.remove(output_folder + f"/{job_id}.txt")
 
-            logging.info(f"Zipping Files to {output_folder}...")
+            completed_process = subprocess.run(
+                ["ls", "-p", output_folder],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=True,
+            )
 
             zip_filename = f"{output_folder}.zip"
+            logging.info(f"Zipping {completed_process.stdout} to {output_folder}...")
             with zipfile.ZipFile(zip_filename, "w") as zip_file:
                 for root, dirs, files in os.walk(output_folder):
                     for file in files:
