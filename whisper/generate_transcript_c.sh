@@ -48,7 +48,7 @@ if [ "$env" = "prod" ]; then
       --model_directory "$model_dir" \
       --model "$model" \
       --task "$job" \
-      --dece "$device" \
+      --device "$device" \
       --output_dir "$output_dir" \
       --threads "$threads" \
       --local_files_only True
